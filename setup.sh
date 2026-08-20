@@ -506,9 +506,10 @@ configure_firewall() {
   CURRENT_STAGE="firewall configuration"
   log "Allowing SSH and HTTPS through UFW..."
 
+  local sshd_effective
   local ssh_port
-  ssh_port=$(sshd -T 2>/dev/null \
-    | awk '$1 == "port" && !found {print $2; found=1}')
+  sshd_effective=$(sshd -T 2>/dev/null)
+  ssh_port=$(awk '$1 == "port" {print $2; exit}' <<<"$sshd_effective")
   [[ "$ssh_port" =~ ^[0-9]+$ ]] || die "Unable to determine the current SSH port."
 
   ufw allow "${ssh_port}/tcp"
