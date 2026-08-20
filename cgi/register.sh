@@ -102,10 +102,10 @@ read_json_body
 
 EMAIL=$(jq -er '.email | select(type == "string")' <<<"$REQUEST_BODY" 2>/dev/null) \
   || respond_error 400 "Bad Request" "A string email field is required."
+[[ -n "$EMAIL" ]] \
+  || respond_error 400 "Bad Request" "Email must not be empty."
 (( ${#EMAIL} <= 254 )) \
   || respond_error 400 "Bad Request" "Email is too long."
-[[ "$EMAIL" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]] \
-  || respond_error 400 "Bad Request" "Email has an invalid format."
 
 [[ -x "$XRAY_BIN" ]] || respond_error 500 "Internal Server Error" "Xray is not installed."
 [[ -r "$CLIENTS_FILE" ]] || respond_error 500 "Internal Server Error" "Client database is unavailable."
