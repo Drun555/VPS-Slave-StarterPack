@@ -21,6 +21,7 @@ ADMIN_PASSWORD=""
 REALITY_PRIVATE_KEY=""
 REALITY_PUBLIC_KEY=""
 REALITY_SHORT_ID=""
+HIDE_CREDENTIALS=false
 
 log() {
   printf '[vps-reality] %s\n' "$*"
@@ -60,6 +61,8 @@ Required arguments:
   --duckdns-token   DuckDNS account token used by Certbot DNS hooks.
   --duckdns-url     DuckDNS hostname, without a scheme or path.
   --certbot-email   Email address for the Let's Encrypt account.
+  --hide-credentials
+                     Do not print generated API credentials or curl examples.
 EOF
 }
 
@@ -110,6 +113,10 @@ parse_arguments() {
       --certbot-email=*)
         CERTBOT_EMAIL=${1#*=}
         require_argument_value "--certbot-email" "$CERTBOT_EMAIL"
+        shift
+        ;;
+      --hide-credentials)
+        HIDE_CREDENTIALS=true
         shift
         ;;
       -h|--help)
@@ -611,12 +618,22 @@ VPS Reality installation completed.
 
 Domain:              ${DUCKDNS_DOMAIN}
 Resolved IPv4:       ${resolved_ips:-not configured}
-API username:        admin
-API password:        ${ADMIN_PASSWORD}
 Credentials file:    ${RUNTIME_DIR}/vps-reality-credentials
 Clients database:    ${RUNTIME_DIR}/clients.json
 REALITY public key:  ${REALITY_PUBLIC_KEY}
 REALITY short ID:    ${REALITY_SHORT_ID}
+EOF
+
+  if [[ "$HIDE_CREDENTIALS" == true ]]; then
+    cat <<'EOF'
+
+API credentials and curl examples were hidden from console output.
+EOF
+  else
+    cat <<EOF
+
+API username:        admin
+API password:        ${ADMIN_PASSWORD}
 
 Examples:
   curl -u 'admin:${ADMIN_PASSWORD}' \
@@ -631,7 +648,10 @@ Examples:
     -H 'Content-Type: application/json' \
     -d '{"id":"CLIENT_UUID"}' \
     'https://${DUCKDNS_DOMAIN}/remove'
+EOF
+  fi
 
+  cat <<EOF
 Remember to open TCP/443 in the VPS provider firewall and point the DuckDNS
 A record to this VPS if it does not already match.
 EOF
