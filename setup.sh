@@ -56,6 +56,9 @@ Usage:
         --duckdns-url example.duckdns.org \
         --certbot-email admin@example.com
 
+Supported operating systems:
+  Ubuntu 22.04 LTS and Ubuntu 24.04 LTS.
+
 Required arguments:
   --setup-ssh-key   Literal OpenSSH public key string. File paths are not read.
   --duckdns-token   DuckDNS account token used by Certbot DNS hooks.
@@ -151,8 +154,12 @@ check_environment() {
 
   # shellcheck disable=SC1091
   source /etc/os-release
-  [[ ${ID:-} == "ubuntu" && ${VERSION_ID:-} == "24.04" ]] \
-    || die "Only Ubuntu 24.04 is supported."
+  [[ ${ID:-} == "ubuntu" ]] \
+    || die "Only Ubuntu 22.04 and 24.04 are supported."
+  case ${VERSION_ID:-} in
+    22.04|24.04) ;;
+    *) die "Only Ubuntu 22.04 and 24.04 are supported." ;;
+  esac
 
   command -v curl >/dev/null 2>&1 || die "curl is required to start this installer."
   [[ ! -e "$INSTALL_DIR" ]] \
